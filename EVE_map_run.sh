@@ -27,7 +27,7 @@ done
 for l in small long; do  
   for cond1 in F_G F_S M_G M_S; do 
     /mnt/65To/bin/samtools/bin/samtools view -h -bS ${sam_path}/${genome}_${cond2}_${l}.SAM > ${bam_path}/${genome}_${cond2}_${l}.bam
-    /mnt/65To/bin/samtools/bin/samtools sort ${bam_path}/${genome}_${cond2}_${l}.bam ${sorted_bam_path}/${genome}_${cond2}_${l}.bam
+    /mnt/65To/bin/samtools/bin/samtools sort ${bam_path}/${genome}_${cond2}_${l}.bam -o ${sorted_bam_path}/${genome}_${cond2}_${l}.bam
     /mnt/65To/bin/samtools/bin/samtools index ${sorted_bam_path}/${genome}_${cond2}_${l}.bam 
   done
 done
