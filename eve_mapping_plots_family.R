@@ -10,40 +10,18 @@
 # library(xkcd)
 # vignette("xkcd-intro")
 # loadfonts(device="postscript")
+# loadfonts()
+# font_import()
 
-
-
+#setwd('Bureau/clement_Avril2021/')
 #install.packages('jpeg')
 require(jpeg)
 
-getwd()
-
-addImg <- function(
-  obj, # an image file imported as an array (e.g. png::readPNG, jpeg::readJPEG)
-  x = NULL, # mid x coordinate for image
-  y = NULL, # mid y coordinate for image
-  width = NULL, # width of image (in x coordinate units)
-  interpolate = TRUE # (passed to graphics::rasterImage) A logical vector (or scalar) indicating whether to apply linear interpolation to the image when drawing. 
-){
-  if(is.null(x) | is.null(y) | is.null(width)){stop("Must provide args 'x', 'y', and 'width'")}
-  USR <- par()$usr # A vector of the form c(x1, x2, y1, y2) giving the extremes of the user coordinates of the plotting region
-  PIN <- par()$pin # The current plot dimensions, (width, height), in inches
-  DIM <- dim(obj) # number of x-y pixels for the image
-  ARp <- DIM[1]/DIM[2] # pixel aspect ratio (y/x)
-  WIDi <- width/(USR[2]-USR[1])*PIN[1] # convert width units to inches
-  HEIi <- WIDi * ARp # height in inches
-  HEIu <- HEIi/PIN[2]*(USR[4]-USR[3]) # height in units
-  rasterImage(image = obj, 
-              xleft = x-(width/2), xright = x+(width/2),
-              ybottom = y-(HEIu/2), ytop = y+(HEIu/2), 
-              interpolate = interpolate)
-}
-
 df <- data.frame(stringsAsFactors=FALSE)
+dl <- data.frame(stringsAsFactors=FALSE)
 
 library(reshape); library(extrafont); library(wesanderson); library("ggplot2");library("gridExtra")
-# loadfonts()
-# font_import()
+
 LMroman <- Type1Font(family = "LMroman",
                      metrics = c("lmroman10-regular.afm",
                                  "lmroman10-bold.afm", 
@@ -56,6 +34,8 @@ pdfFonts(LMroman = LMroman)
 sevEves = c()
 flanq = 1000
 args <- commandArgs(TRUE)
+
+#args=c('4_small_long_expTAB/FS/Avul_FS.tab',  'bed_GT/strandedBed_new_familyAdded/Avul_stranded.txt','bed_GT/strandedBed_new_familyAdded/Avul_stranded.txt', '4_genomes_transcriptomes_len/Avul_GT.fna.len', 'Plots_2021_v4/test.pdf', '4_ET_out_filtre/Avul.out', 'Avul', 'FS', 'bed_exp_eve/small/Avul.txt' ,'bed_exp_eve/long/Av')
 
 if (length(args) < 5) {
 print('Rscript --vanilla Figs.R *deep_table *bed_combin *bed *genomeLen *outFile *teFile ') }
@@ -132,6 +112,9 @@ if (length(args) >= 5) {
 		                             | as.character(eve_depth$fill) == 's_rev')),] # pro/locus de l'EVE
 		
 	
+		eve_long = eve_depth[which(as.character(eve_depth$contig) == contig  
+		                            & (as.character(eve_depth$fill) == 'l_forw' 
+		                               | as.character(eve_depth$fill) == 'l_rev')),] # pro/locus de l'EVE
 		
 		contig_depth = contig_depth[order(contig_depth$position, decreasing = F),]
 	  	## test
@@ -141,6 +124,10 @@ if (length(args) >= 5) {
 		  	if (any(abs(eve_small$count) > 10) == TRUE) {
         
 		  	  df = rbind(df,EVE_combin[i,])	  	
+		  	  
+		  	  if (any(abs(eve_long$count) > 3) == TRUE) {
+		  	    dl = rbind(dl,EVE_combin[i,])
+		  	  }
 		  	  
 				starts = EVE$start[which(as.character(EVE$Contig) == contig 
 		      & EVE$start >= Start & EVE$stop <= Stop) ];starts = sort(starts, decreasing = FALSE) # recupere ts les starts des EVE du contig
@@ -242,7 +229,7 @@ if (length(args) >= 5) {
 			  
 			 ## distrib taille *****************************************************************************************
 			 
-			   distrib = paste('/home/cbelliardo/Bureau/clement_Fev2021/Plots_2021_v2/distrib_jpg/',speciesAbbrev,'/',contig,'__',starts[j],'__',stops[j],'_',condition,'_run1_5prime.jpg', sep = '')
+			   distrib = paste('/home/cbelliardo/Bureau/clement_Avril2021/distrib_jpg/',speciesAbbrev,'/',contig,'__',starts[j],'__',stops[j],'_',condition,'_run1_5prime.jpg', sep = '')
 			  
 			 if (file.exists(distrib)){
 			  img <- readJPEG(distrib)
@@ -469,8 +456,8 @@ if (length(args) >= 5) {
         }
       }
     }
-    write.table(df, file = args[9], sep=",",dec = " ")
-    
+    write.table(df, file = args[9], col.names = FALSE, row.names = FALSE,sep = "\t", quote = FALSE)
+    write.table(df, file = args[10], col.names = FALSE, row.names = FALSE,sep = "\t", quote = FALSE)
     ###################
 	print(paste('plot OK, path : ',outFile))
 	dev.off()
@@ -478,5 +465,5 @@ if (length(args) >= 5) {
 }
 
 
-#for e in $(cat l); do for i in {FG,FS,MG,MS}; do Rscript Figs2020.R files/tabs/${i}/${e}_${i}.tab files/bed-2020/${e}.txt files/bed-2020/${e}.txt files/len/${e}_GT.fna.len figures2020_v1/${e}_${i} ;done ;done
+for e in $(cat l); do for i in {FG,FS,MG,MS}; do Rscript Figs2020.R files/tabs/${i}/${e}_${i}.tab files/bed-2020/${e}.txt files/bed-2020/${e}.txt files/len/${e}_GT.fna.len figures2020_v1/${e}_${i} ;done ;done
 #Rscript --vanilla eve_mapping_plots.R 4_small_long_expTAB/FG/Aaeg_FG.tab strandedBed_new/Aaeg_stranded.txt strandedBed_new/Aaeg_stranded.txt 4_genomes_transcriptomes_len/Aaeg_GT.fna.len Aaeg_FG.pdf 4_ET_out/Aaeg.out 
