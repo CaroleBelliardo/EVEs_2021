@@ -11,15 +11,6 @@
     -l, --lenRepo <REPO>    tree repositoy
 """
 
-### bash command line for <read len file> from global bam 
-## bam file => one bam by EVE 
-# $ samtools rmdup -s bam collapsed_bam
-# $ while read line; do echo $( eve_bed/$(cat $line |cut -f 1,2,3 | sed 's/\t/__/g')) ;done < bedAvul # generate one bed by eve
-#for i in $(ls -1); do samtools view -h -b -L $bed  $small.bam > ${i}$small.bam ;done &
-
-# $ for i in * ; do bedtools bamtofastq -i $i -fq ../TEST/$i.fastq ; done
-# $ for i in *; do cat $i | perl -ne '$s=<>;<>;<>;chomp($s);print length($s)."\n";' > len/$i ; done
-
 import csv
 import os
 import sys
@@ -36,13 +27,12 @@ def main1():
     with open(args['--species'], 'r') as file:
         liste_species = [line.strip() for line in file]
 
-
     for species in liste_species:
-        specie=species.split('_')[0]
+        specie = species.split('_')[0]
         condition = species.split('_')[1]
 
-        bedF=args['--bed'] + '/' + species  +'.bed'
-        bed = pd.read_table(bedF, sep=',')
+        bedF = args['--bed'] + '/' + species + '.bed'
+        bed = pd.read_table(bedF, sep='\t', names=['Contig', 'start', 'stop', 'strand', 'id', 'eval', 'v', 'family'])
 
         for contig in bed.Contig:
 
@@ -54,7 +44,6 @@ def main1():
 
             if os.path.exists(lenC) and os.path.getsize(lenC) > 0:
                 with open(lenC, 'r') as file:
-
                     subDf = pd.DataFrame()
                     lenFile = [int(line.strip()) for line in file]
                     nbTotal = len(lenFile)
@@ -69,39 +58,37 @@ def main1():
 
                     df = pd.concat([df, subDf], ignore_index=True)
 
-    df.to_csv('len_table.txt',sep='\t')
+    df.to_csv('len_table1.txt', sep='\t')
 
-def main2 ():
-    len_tab=pd.read_table('len_table.txt', sep='\t')
 
-    len_tab['type'] ='none'
+def main2():
+    len_tab = pd.read_table('len_table1.txt', sep='\t')
+
+    len_tab['type'] = 'none'
     len_tab.type[len_tab.nb_si < len_tab.nb_pi] = 'piRNA'
     len_tab.type[len_tab.nb_pi < len_tab.nb_si] = 'siRNA'
 
-
     data = pd.DataFrame({'count': len_tab.groupby(["species", "type"]).size()}).reset_index()
 
-    df_synth=pd.DataFrame()
-    df_synth['species']=[]
-    df_synth['type']=[]
+    df_synth = pd.DataFrame()
+    df_synth['species'] = []
+    df_synth['type'] = []
 
-    for condition in ['FG', 'FS', 'MS', 'MG'] :
+    for condition in ['FG', 'FS', 'MS', 'MG']:
         subT = len_tab.loc[len_tab['condition'] == condition]
-        df_res=pd.DataFrame({condition: subT.groupby(["species", "type"]).size()}).reset_index()
-        df_synth=df_synth.merge(df_res, how='outer', on=['species','type'])
+        df_res = pd.DataFrame({condition: subT.groupby(["species", "type"]).size()}).reset_index()
+        df_synth = df_synth.merge(df_res, how='outer', on=['species', 'type'])
     df_synth.to_csv('len_reads_FG_FS_MS_MG.txt', sep='\t')
 
     data = pd.DataFrame({'count': len_tab.groupby(["species", "type"]).size()}).reset_index()
-    df_synth=pd.DataFrame()
-    df_synth['species']=[]
-    df_synth['type']=[]
+    df_synth = pd.DataFrame()
+    df_synth['species'] = []
+    df_synth['type'] = []
 
-    for condition in ['FG', 'FS'] :
+    for condition in ['FG', 'FS']:
         subT = len_tab.loc[len_tab['condition'] == condition]
-        df_res=pd.DataFrame({condition: subT.groupby(["species", "type"]).size()}).reset_index()
-        df_synth=df_synth.merge(df_res, how='outer', on=['species','type'])
-
-
+        df_res = pd.DataFrame({condition: subT.groupby(["species", "type"]).size()}).reset_index()
+        df_synth = df_synth.merge(df_res, how='outer', on=['species', 'type'])
 
     df_synth.to_csv('len_reads_FG_FS.txt', sep='\t')
 
@@ -113,13 +100,14 @@ def main2 ():
         subT = len_tab.loc[len_tab['type'] == type]
         df_res = pd.DataFrame({type: subT.groupby(["species", "condition"]).size()}).reset_index()
         df_synth = df_synth.merge(df_res, how='outer', on=['species', 'condition'])
-    print(df_synth)
-    t = pd.DataFrame({'total_SiPi': len_tab.groupby(["species", 'condition']).size()}).reset_index()
-    df_synth = df_synth.merge(t, how='outer', on=['species','condition'])
 
-    df_synth['piRNA_Percent'] = df_synth['piRNA'] /  df_synth['total_SiPi'] *100
-    df_synth['siRNA_Percent'] = df_synth['siRNA'] /  df_synth['total_SiPi'] *100
-    print(df_synth)
+    #t = pd.DataFramtotal_SiPie({'': len_tab.groupby(["species", 'condition']).size()}).reset_index()
+
+    #df_synth = df_synth.merge(t, how='outer', on=['species', 'condition'])
+
+    df_synth['total_SiPi']= df_synth['piRNA'] + df_synth['siRNA']
+    df_synth['piRNA_Percent'] = df_synth['piRNA'] / df_synth['total_SiPi'] * 100
+    df_synth['siRNA_Percent'] = df_synth['siRNA'] / df_synth['total_SiPi'] * 100
     df_synth.to_csv('len_reads_FG_FS.txt2', sep='\t')
 
     df_synth = pd.DataFrame()
@@ -155,5 +143,5 @@ def main2 ():
 
 
 if __name__ == '__main__':
-    #main1()
+    main1()
     main2()
