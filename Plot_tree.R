@@ -1,19 +1,15 @@
-r=read.table('Bureau/clement_Fev2021/Plot_len_reads_FG_FS.txt',header=TRUE, sep='\t')
+#install.packages("ape")
+#install.packages("phangorn")
+#install.packages("phytools")
+#install.packages("geiger")
+#install.packages("devtools")
+#install_github("liamrevell/phytools")
 install.packages('dplyr')
 library(ggplot2)
 library(dplyr)
-
-install.packages("ape")
-install.packages("phangorn")
-install.packages("phytools")
-install.packages("geiger")
-install.packages("devtools")
-install_github("liamrevell/phytools")
-
 library(devtools)
 library(ape)
 library(RColorBrewer)
-display.brewer.all()
 
 ## read tree from string
 text.string<-
@@ -22,10 +18,11 @@ text.string<-
   (Aedes_aegypti,(Musca_domestica,((Drosophila_virilis), Drosophila_melanogaster))))))))))));"
 
 vert.tree<-read.tree(text=text.string)
-
+# 
 c=brewer.pal(n = 4, name = "PRGn")
+
 ## ---
-vec=rev(vert.tree$tip.label)
+vec=vert.tree$tip.label
 
 d1=read.table('Bureau/clement_Avril2021/Len_eve_onlyG/sumEVE_exp-Noexp.txt2', sep='\t', stringsAsFactors=FALSE) #row.names = 1
 names(d1)<-c( 'species', 'No expressed', 'Expressed' )
@@ -33,25 +30,29 @@ lab=c( 'No expressed', 'Expressed' )
 
 data_new1 <- d1[match(vec, d1$species), ]
 
-barplot(rbind(data_new1$`No expressed`, data_new1$Expressed), col=c( "grey", c[4]),horiz=TRUE, xpd=TRUE,las=2,cex.names=0.5,
-        legend =lab, beside=FALSE)
+#barplot(rbind(data_new1$`No expressed`, data_new1$Expressed), col=c( "grey", c[4]),horiz=TRUE, xpd=TRUE,las=2,cex.names=0.5,       legend =lab, beside=FALSE)
 
 
-
-## plot nb eve
 
 ## plot type
-d2=read.table('Bureau/clement_Avril2021/Len_eve_onlyG/SynthesePlot1.txt', sep='\t',
+d2_fg=read.table('Bureau/eve_mai2021/FG_sipi_formated.txt', sep='\t',
+              header = TRUE, stringsAsFactors=FALSE) #row.names = 1
+d2_fs=read.table('Bureau/eve_mai2021/FS_sipi_formated.txt', sep='\t',
               header = TRUE, stringsAsFactors=FALSE) #row.names = 1
 
-data_new2 <- d2[match(vec, d2$species), ]
 
-barplot(rbind(data_new2$pisRNA, data_new2$siRNA), col=c(c[1],c[2]),horiz=TRUE, xpd=TRUE,las=2,cex.names=0.5,
-        legend = colnames(data_new2[,4:5]), beside=FALSE)
+fg <- d2_fg[match(vec, d2_fg$species), ]
+fs <- d2_fs[match(vec, d2_fs$species), ]
 
+#barplot(rbind(fg$piRNA, fg$siRNA), col=c(c[1],c[2]),horiz=TRUE, xpd=TRUE,las=2,cex.names=0.5,       legend = colnames(fg[,4:5]), beside=FALSE,main = 'FG')
+
+#barplot(rbind(fs$piRNA, fs$siRNA), col=c(c[1],c[2]),horiz=TRUE, xpd=TRUE,las=2,cex.names=0.5,
+ #       legend = colnames(fs[,4:5]), beside=FALSE,main = 'FS')
 
 ##--- DRAWING
-par(mfrow=c(1,3))
+
+#--FS
+par(mfrow=c(1,4))
 par(mar = c(3, 1, 1, 1)) 
 
 plot(vert.tree,no.margin=FALSE,cex=1.4)
@@ -59,8 +60,43 @@ barplot(rbind(data_new1$`No expressed`, data_new1$Expressed), col=c( "grey", c[4
         legend =lab, beside=FALSE,  space=rep(0.8,19))
 
 
-barplot(rbind(data_new2$pisRNA, data_new2$siRNA), col=c(c[1],c[2]),horiz=TRUE, xpd=TRUE,las=2,cex.names=0.5,
-        legend = colnames(data_new2[,4:5]),, beside=FALSE, space=rep(0.8,19))
+barplot(rbind(fs$piRNA, fs$siRNA), col=c(c[1],c[2]),horiz=TRUE, xpd=TRUE,las=2,cex.names=0.5,
+       legend = colnames(fs[,4:5]), beside=FALSE,main = 'FS')
+
+barplot(t(m), main='Viral families',horiz=TRUE, xpd=TRUE,las=2,cex.names=0.2,  ylab = '', xlab = '',axisnames=F,
+        col = sc, beside=FALSE, space=rep(0.8,19))
+legend("bottomright", colnames(m),pch=15,
+       col=sc, cex=1.09)
+
+#--FG
+par(mfrow=c(1,4))
+par(mar = c(3, 1, 1, 1)) 
+
+plot(vert.tree,no.margin=FALSE,cex=1.4)
+barplot(rbind(data_new1$`No expressed`, data_new1$Expressed), col=c( "grey", c[4]),horiz=TRUE, xpd=TRUE,las=2,cex.names=0.5,
+        legend =lab, beside=FALSE,  space=rep(0.8,19))
+
+barplot(rbind(fg$piRNA, fg$siRNA), col=c(c[1],c[2]),horiz=TRUE, xpd=TRUE,las=2,cex.names=0.5,
+        legend = colnames(fg[,4:5]), beside=FALSE,main = 'FG')
+
+barplot(t(m), main='Viral families',horiz=TRUE, xpd=TRUE,las=2,cex.names=0.2,  ylab = '', xlab = '',axisnames=F,
+        col = sc, beside=FALSE, space=rep(0.8,19))
+legend("bottomright", colnames(m),pch=15,
+       col=sc, cex=1.09)
+
+# -- FG FS
+par(mfrow=c(1,4))
+par(mar = c(3, 1, 1, 1)) 
+
+plot(vert.tree,no.margin=FALSE,cex=1.4)
+barplot(rbind(data_new1$`No expressed`, data_new1$Expressed), col=c( "grey", c[4]),horiz=TRUE, xpd=TRUE,las=2,cex.names=0.5,
+        legend =lab, beside=FALSE,  space=rep(0.8,19))
+
+barplot(rbind(fs$piRNA, fs$siRNA), col=c(c[1],c[2]),horiz=TRUE, xpd=TRUE,las=2,cex.names=0.5,
+        legend = colnames(fs[,4:5]), beside=FALSE,main = 'FS')
+
+barplot(rbind(fg$piRNA, fg$siRNA), col=c(c[1],c[2]),horiz=TRUE, xpd=TRUE,las=2,cex.names=0.5,
+        legend = colnames(fg[,4:5]), beside=FALSE,main = 'FG')
 
 
 
@@ -97,3 +133,28 @@ barplot(t(m), horiz=TRUE, xpd=TRUE,las=2,cex.names=0.2,  ylab = '', xlab = '',ax
          col = sc, beside=FALSE, space=rep(0.8,19))
 legend("bottomright", colnames(m),pch=15,
        col=sc, cex=1.09)
+
+
+
+#all
+par(mfrow=c(1,5))
+par(mar = c(3, 1, 1, 1)) 
+
+plot(vert.tree,no.margin=FALSE,cex=1.4)
+
+barplot(rbind(data_new1$`No expressed`, data_new1$Expressed), col=c( "grey", c[4]),horiz=TRUE, xpd=TRUE,las=2,cex.names=0.5,
+        legend =lab, beside=FALSE,  space=rep(0.8,19))
+
+barplot(rbind(fg$piRNA, fg$siRNA), col=c(c[1],c[2]),horiz=TRUE, xpd=TRUE,las=2,cex.names=0.5,
+        legend = colnames(fg[,4:5]), beside=FALSE,main = 'FG')
+
+barplot(rbind(fs$piRNA, fs$siRNA), col=c(c[1],c[2]),horiz=TRUE, xpd=TRUE,las=2,cex.names=0.5,
+        legend = colnames(fs[,4:5]), beside=FALSE,main = 'FS')
+
+barplot(t(m), main='Viral families',horiz=TRUE, xpd=TRUE,las=2,cex.names=0.2,  ylab = '', xlab = '',axisnames=F,
+        col = sc, beside=FALSE, space=rep(0.8,19))
+legend("bottomright", colnames(m),pch=15,
+       col=sc, cex=1.09)
+
+
+
