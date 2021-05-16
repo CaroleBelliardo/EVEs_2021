@@ -62,3 +62,38 @@ barplot(rbind(data_new1$`No expressed`, data_new1$Expressed), col=c( "grey", c[4
 barplot(rbind(data_new2$pisRNA, data_new2$siRNA), col=c(c[1],c[2]),horiz=TRUE, xpd=TRUE,las=2,cex.names=0.5,
         legend = colnames(data_new2[,4:5]),, beside=FALSE, space=rep(0.8,19))
 
+
+
+
+#-- viral families 
+#long version for ggplot # d1=read.table('Bureau/eve_mai2021/familles/FG_merged_longV.txt', sep='\t', header=TRUE, stringsAsFactors=FALSE)[2:4,] #row.names = 1
+
+d3=read.table('Bureau/eve_mai2021/familles/FG_merged_sum_manual_completName.txt', sep='\t', header=TRUE) #row.names = 1
+head(d3)
+dim(d3)
+data_new3 <- d3[match(vec, d3$species), ]
+
+m=data.matrix(data_new3, rownames.force = NA)[,3:21]
+
+# DRAW species
+library(RColorBrewer)
+n <- 21
+qual_col_pals = brewer.pal.info[brewer.pal.info$category == 'qual',]
+col_vector = unlist(mapply(brewer.pal, qual_col_pals$maxcolors, rownames(qual_col_pals)))
+sc=sample(col_vector, n)
+
+par(mfrow=c(1,3))
+par(mar = c(3, 1, 1, 1)) 
+
+plot(vert.tree,no.margin=FALSE,cex=1.4)
+
+barplot(rbind(data_new1$`No expressed`, data_new1$Expressed),
+        col=c( "grey", c[4]),horiz=TRUE, xpd=TRUE,las=2,cex.names=0.5,
+        beside=FALSE,  space=rep(0.8,19))
+legend("bottomright", lab, pch=15,
+       col=c( "grey", c[4]), cex=1.09)
+
+barplot(t(m), horiz=TRUE, xpd=TRUE,las=2,cex.names=0.2,  ylab = '', xlab = '',axisnames=F,
+         col = sc, beside=FALSE, space=rep(0.8,19))
+legend("bottomright", colnames(m),pch=15,
+       col=sc, cex=1.09)
